@@ -1,0 +1,74 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <title>Login — OCES Demo</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+</head>
+
+<body class="min-vh-100 d-flex flex-column">
+  <nav class="navbar navbar-expand-lg navbar-light bg-light shadow-sm">
+    <div class="container-fluid">
+      <a class="navbar-brand" href="index.php">
+        <img src="assets/logo.png" alt="Logo" height="32" class="me-2">
+        OCES-DEMO
+      </a>
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#mainNavbar"
+        aria-controls="mainNavbar"
+        aria-expanded="false"
+        aria-label="Toggle navigation">
+        <span class="navbar-toggler-icon"></span>
+      </button>
+      <div class="collapse navbar-collapse" id="mainNavbar">
+        <ul class="navbar-nav ms-auto mb-2 mb-lg-0">
+          
+          <li class="nav-item">
+            <a class="nav-link" href="index.html">Home</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="registration.html">Register</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="login.html">Login</a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link" href="#" id="logoutLink">Logout</a>
+          </li>
+
+        </ul>
+      </div>
+
+     </div>
+
+  </nav>
+  <main class="flex-fill d-flex justify-content-center align-items-center">
+    <div class="card p-4 shadow" style="max-width: 420px; width: 100%;">
+      <h2 class="text-center mb-4">Login</h2>
+        <div id="message" class="mb-3"></div>
+      <form id="loginForm" method="POST" action="/OCES/backend/api/login.php" novalidate>
+        <input type="hidden" name="csrf_token" value="">
+        <div class="mb-3">
+          <label for="username" class="form-label">Username</label>
+          <input id="username" name="username" class="form-control" placeholder="Username" required>
+        </div>
+        <div class="mb-4">
+          <label for="password" class="form-label">Password</label>
+          <input id="password" type="password" name="password" class="form-control" placeholder="Password" required>
+        </div>
+        <button type="submit" class="btn btn-primary w-100">Login</button>
+      </form>
+    </div>
+  </main>
+ 
+  <script src="/OCES/frontend/site/js/csrf.js" defer></script>
+  <script src="/OCES/frontend/site/js/flash.js" defer></script>
+  <script src="/OCES/frontend/site/js/logout.js" defer></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  
+</body>
+</html>
