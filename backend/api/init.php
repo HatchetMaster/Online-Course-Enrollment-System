@@ -1,5 +1,6 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/lib/api_helpers.php';
 
 
 $configPath = __DIR__ . '/../lib/config.php';

@@ -1,5 +1,8 @@
 <?php
 declare(strict_types=1);
+require_once __DIR__ . '/lib/api_helpers.php';
+require_once __DIR__ . '/init.php';
+
 error_log("flash.php reached");
 
 header('Content-Type: application/json; charset=utf-8');
