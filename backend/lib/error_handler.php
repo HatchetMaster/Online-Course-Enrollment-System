@@ -1,12 +1,6 @@
-
 <?php
 declare(strict_types=1);
 
-/*
- * Centralized error handler bootstrap.
- * - Registers the project's simple logger and consistent PHP error/exception/shutdown handlers.
- * - Idempotent: safe to require() multiple times.
- */
 
 if (defined('OCES_ERROR_HANDLERS_REGISTERED')) {
     return;

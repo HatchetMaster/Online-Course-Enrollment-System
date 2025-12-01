@@ -17,6 +17,22 @@ if (isset($GLOBAL_OCES_CONFIG) && is_array($GLOBAL_OCES_CONFIG)) {
     $CONFIG = array_merge($CONFIG, $GLOBAL_OCES_CONFIG);
 }
 
+
+$constMap = [
+    'DB_HOST' => $CONFIG['DB_HOST'] ?? '127.0.0.1',
+    'DB_PORT' => isset($CONFIG['DB_PORT']) ? (int) $CONFIG['DB_PORT'] : 3306,
+    'DB_NAME' => $CONFIG['DB_NAME'] ?? '',
+    'DB_USER' => $CONFIG['DB_USER'] ?? '',
+    'DB_PASSWORD' => $CONFIG['DB_PASS'] ?? '',
+    'SESSION_NAME' => $CONFIG['SESSION_NAME'] ?? 'OCESSESSION',
+];
+
+foreach ($constMap as $const => $val) {
+    if (!defined($const)) {
+        define($const, $val);
+    }
+}
+
 $DEMO_MODE = !empty($CONFIG['DEMO_MODE']);
 
 $cookieSecure = !empty($CONFIG['FORCE_HTTPS']) || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
@@ -63,24 +79,21 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
-// ---- CENTRALIZED ERROR HANDLING:
-// Remove duplicate set_error_handler()/set_exception_handler() here.
-// Handlers are registered once in backend/lib/error_handler.php (via api_helpers.php).
-// No further handler overrides below.
-
 $logFile = __DIR__ . '/../logs/app-errors.log';
 if (!is_dir(dirname($logFile))) {
     @mkdir(dirname($logFile), 0750, true);
 }
 
-// keep init.php lightweight; let error_handler.php handle global exceptions/errors
-// any uncaught exception will be handled by oces_register_simple_handlers().
+$cryptoFile = __DIR__ . '/crypto.php';
+if (file_exists($cryptoFile)) {
+    require_once $cryptoFile;
+}
 
 $handlers = [
     __DIR__ . '/registrationHandler.php',
     __DIR__ . '/loginHandler.php',
     __DIR__ . '/logoutHandler.php',
-    __DIR__ . '/lib/error_handler.php'
+    __DIR__ . '/../lib/error_handler.php'
 ];
 foreach ($handlers as $h) {
     if (file_exists($h))
