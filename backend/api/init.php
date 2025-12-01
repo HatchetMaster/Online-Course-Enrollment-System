@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/lib/api_helpers.php';
+require_once __DIR__ . '/../lib/api_helpers.php';
 
 
 $configPath = __DIR__ . '/../lib/config.php';
@@ -21,17 +21,34 @@ $DEMO_MODE = !empty($CONFIG['DEMO_MODE']);
 
 $cookieSecure = !empty($CONFIG['FORCE_HTTPS']) || (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off');
 
-session_set_cookie_params([
-    'secure' => $cookieSecure,
-    'httponly' => true,
-    'samesite' => 'Lax'
-]);
-
 error_reporting(E_ALL);
-ini_set('session.use_only_cookies', '1');
 
-if (session_status() !== PHP_SESSION_ACTIVE) {
-    session_start();
+// Temporarily suppress any error handler while configuring session params
+$previousErrorHandler = set_error_handler(function ($severity, $message, $file, $line) {
+});
+
+try {
+    if (session_status() === PHP_SESSION_NONE) {
+        @session_set_cookie_params([
+            'lifetime' => 0,
+            'path' => '/',
+            'secure' => $cookieSecure,
+            'httponly' => true,
+            'samesite' => 'Lax'
+        ]);
+
+        @ini_set('session.use_only_cookies', '1');
+
+        session_start();
+    } else {
+        @ini_set('session.use_only_cookies', '1');
+    }
+} finally {
+    if ($previousErrorHandler !== null) {
+        set_error_handler($previousErrorHandler);
+    } else {
+        restore_error_handler();
+    }
 }
 
 if (php_sapi_name() !== 'cli') {
@@ -46,56 +63,24 @@ if (php_sapi_name() !== 'cli') {
     }
 }
 
-set_error_handler(function ($severity, $message, $file, $line) {
-    throw new ErrorException($message, 0, $severity, $file, $line);
-});
+// ---- CENTRALIZED ERROR HANDLING:
+// Remove duplicate set_error_handler()/set_exception_handler() here.
+// Handlers are registered once in backend/lib/error_handler.php (via api_helpers.php).
+// No further handler overrides below.
 
 $logFile = __DIR__ . '/../logs/app-errors.log';
 if (!is_dir(dirname($logFile))) {
     @mkdir(dirname($logFile), 0750, true);
 }
 
-set_exception_handler(function ($e) use ($logFile, $DEMO_MODE) {
-    $logLine = sprintf("[%s] %s in %s on line %d\n", date('c'), $e->getMessage(), $e->getFile(), $e->getLine());
-    error_log($logLine, 3, $logFile);
-
-    header('Content-Type: application/json; charset=utf-8');
-    http_response_code(500);
-    $body = ['error' => 'internal_error'];
-    if ($DEMO_MODE) {
-        $body['message'] = $e->getMessage();
-    }
-    echo json_encode($body);
-    exit;
-});
-
-if (!defined('DB_HOST'))
-    define('DB_HOST', $CONFIG['DB_HOST'] ?? '127.0.0.1');
-if (!defined('DB_PORT'))
-    define('DB_PORT', intval($CONFIG['DB_PORT'] ?? 3306));
-if (!defined('DB_USER'))
-    define('DB_USER', $CONFIG['DB_USER'] ?? 'root');
-if (!defined('DB_PASSWORD'))
-    define('DB_PASSWORD', $CONFIG['DB_PASS'] ?? '');
-if (!defined('DB_NAME'))
-    define('DB_NAME', $CONFIG['DB_NAME'] ?? 'oces');
-
-$cryptoPath = __DIR__ . '/crypto.php';
-if (file_exists($cryptoPath)) {
-    require_once $cryptoPath;
-} else {
-    throw new RuntimeException('Missing crypto helpers: ' . $cryptoPath);
-}
-
-$loggingPath = __DIR__ . '/logging.php';
-if (file_exists($loggingPath)) {
-    require_once $loggingPath;
-}
+// keep init.php lightweight; let error_handler.php handle global exceptions/errors
+// any uncaught exception will be handled by oces_register_simple_handlers().
 
 $handlers = [
     __DIR__ . '/registrationHandler.php',
     __DIR__ . '/loginHandler.php',
-    __DIR__ . '/logoutHandler.php'
+    __DIR__ . '/logoutHandler.php',
+    __DIR__ . '/lib/error_handler.php'
 ];
 foreach ($handlers as $h) {
     if (file_exists($h))

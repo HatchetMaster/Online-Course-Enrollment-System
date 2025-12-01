@@ -1,10 +1,5 @@
 <?php
-// backend/lib/api_helpers.php
 declare(strict_types=1);
-
-if (session_status() === PHP_SESSION_NONE) {
-    @session_start();
-}
 
 require_once __DIR__ . '/error_handler.php';
 
@@ -23,6 +18,32 @@ if (!function_exists('oces_config')) {
         }
         $cfg['LOG_DIR'] = getenv('OCES_LOG_DIR') ?: ($cfg['LOG_DIR'] ?? __DIR__ . '/../../logs');
         return $cfg;
+    }
+}
+
+if (!function_exists('respond_json')) {
+    /**
+     * Alias for respond_success; preserved for legacy code expecting respond_json($data, $status)
+     *
+     * @param array $data
+     * @param int $status
+     */
+    function respond_json(array $data = [], int $status = 200): void {
+        respond_success($data, $status);
+    }
+}
+
+if (!function_exists('respond_error')) {
+    /**
+     * Alias for respond_error_payload; signature (status, code, message, details)
+     *
+     * @param int $status
+     * @param string $code
+     * @param string $message
+     * @param array $details
+     */
+    function respond_error(int $status, string $code, string $message, array $details = []): void {
+        respond_error_payload($status, $code, $message, $details);
     }
 }
 
@@ -81,58 +102,73 @@ if (!function_exists('check_csrf_from_payload')) {
     }
 }
 
-/* Public wrappers accepting variable args for backward-compatibility */
-if (!function_exists('oces_log_dispatch')) {
-    function oces_log_dispatch(string $level, ...$args): void
-    {
-        $argc = count($args);
-        if ($argc === 0)
-            return;
+/**
+ * Flexible dispatcher that accepts both:
+ *  - new style: log_info('message', ['ctx'=>...])
+ *  - legacy style: log_info('component','message', ['meta'=>...])
+ *
+ * @param string $level
+ * @param mixed ...$args
+ * @return void
+ */
+function oces_log_dispatch(string $level, ...$args): void
+{
+    // normalize args into ($msg, $ctx)
+    $argc = count($args);
+    if ($argc === 0) {
+        // nothing to log
+        return;
+    }
+
+    // default
+    $msg = (string) $args[0];
+    $ctx = [];
+
+    if ($argc === 1) {
+        // log_info('message')
         $msg = (string) $args[0];
         $ctx = [];
-
-        if ($argc === 1) {
+    } elseif ($argc === 2) {
+        // Could be (message, ctx-array) OR Legacy ambiguous (component, message)
+        if (is_array($args[1])) {
+            // (message, ctx)
             $msg = (string) $args[0];
-            $ctx = [];
-        } elseif ($argc === 2) {
-            if (is_array($args[1])) {
-                $msg = (string) $args[0];
-                $ctx = $args[1];
-            } else {
-                $component = (string) $args[0];
-                $message = (string) $args[1];
-                $msg = $message;
-                $ctx = ['component' => $component];
-            }
+            $ctx = $args[1];
         } else {
+            // treat as (component, message) -> convert to context
             $component = (string) $args[0];
             $message = (string) $args[1];
-            $meta = is_array($args[2]) ? $args[2] : [];
             $msg = $message;
-            $ctx = array_merge(['component' => $component], $meta);
+            $ctx = ['component' => $component];
         }
+    } else {
+        // Assume legacy: (component, message, metaArray)
+        $component = (string) $args[0];
+        $message = (string) $args[1];
+        $meta = is_array($args[2]) ? $args[2] : [];
+        $msg = $message;
+        $ctx = array_merge(['component' => $component], $meta);
+    }
 
-        oces_simple_log($level, $msg, $ctx);
-    }
-}
-
-if (!function_exists('log_info')) {
-    function log_info(...$args): void
-    {
-        oces_log_dispatch('info', ...$args);
-    }
-}
-if (!function_exists('log_warn')) {
-    function log_warn(...$args): void
-    {
-        oces_log_dispatch('warning', ...$args);
-    }
-}
-if (!function_exists('log_error')) {
-    function log_error(...$args): void
-    {
-        oces_log_dispatch('error', ...$args);
-    }
+    // Use the low-level simple logger
+    oces_simple_log($level, $msg, $ctx);
 }
 
-// ---- end paste block ----
+/**
+ * @param mixed ...$args
+ * @return void
+ */
+function log_info(...$args): void
+{
+    oces_log_dispatch('info', ...$args);
+}
+/** @param mixed ...$args @return void */
+function log_warn(...$args): void
+{
+    oces_log_dispatch('warning', ...$args);
+}
+/** @param mixed ...$args @return void */
+function log_error(...$args): void
+{
+    oces_log_dispatch('error', ...$args);
+}

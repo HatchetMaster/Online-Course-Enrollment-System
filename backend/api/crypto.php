@@ -1,6 +1,6 @@
 <?php
 declare(strict_types=1);
-require_once __DIR__ . '/lib/api_helpers.php';
+require_once __DIR__ . '/../lib/api_helpers.php';
 
 
 if (defined('OCES_CRYPTO_BOOTSTRAPPED')) {

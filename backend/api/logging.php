@@ -2,8 +2,8 @@
 declare(strict_types=1);
 
 /*
- * Legacy logging compatibility wrapper.
- * Forwards to centralized api_helpers/simple_logger if available.
+ * Logging compatibility wrapper.
+ * Forwards to centralized api_helpers/simple_logger.
  * Only defines functions if they don't already exist to avoid redeclaration.
  */
 
@@ -12,13 +12,8 @@ if (defined('OCES_LOGGING_BOOTSTRAPPED')) {
 }
 define('OCES_LOGGING_BOOTSTRAPPED', true);
 
-// Include centralized helpers (resolve relative to this file)
 require_once __DIR__ . '/../lib/api_helpers.php';
 
-/**
- * Define legacy functions only if they don't already exist.
- * These forward to the central log helpers.
- */
 
 if (!function_exists('log_entry')) {
     function log_entry(string $level, string $component, string $message, array $meta = []): void
@@ -56,23 +51,3 @@ if (!function_exists('log_entry')) {
     }
 }
 
-if (!function_exists('log_error')) {
-    function log_error(string $component, string $message, array $meta = []): void
-    {
-        log_entry('ERROR', $component, $message, $meta);
-    }
-}
-
-if (!function_exists('log_warn')) {
-    function log_warn(string $component, string $message, array $meta = []): void
-    {
-        log_entry('WARNING', $component, $message, $meta);
-    }
-}
-
-if (!function_exists('log_info')) {
-    function log_info(string $component, string $message, array $meta = []): void
-    {
-        log_entry('INFO', $component, $message, $meta);
-    }
-}

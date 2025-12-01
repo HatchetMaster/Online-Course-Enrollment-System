@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/init.php';
-require_once __DIR__ . '/lib/api_helpers.php';
+require_once __DIR__ . '/../lib/api_helpers.php';
 
 function flash_set(string $type, string $message): void
 {
@@ -46,7 +46,7 @@ try {
         if (!empty($res['success']) && empty($res['need2fa'])) {
             $_SESSION['user_id'] = $res['user_id'];
             flash_set('success', 'Login successful.');
-            header('Location: /OCES/frontend/site/index.html');
+            header('Location: /OCES/frontend/site/profile.html');
             exit;
         }
 
@@ -76,7 +76,7 @@ try {
 
     $_SESSION['user_id'] = (int) $row['id'];
     flash_set('success', 'Login successful.');
-    header('Location: /OCES/frontend/site/index.html');
+    header('Location: /OCES/frontend/site/profile.html');
     exit;
 
 } catch (Throwable $e) {

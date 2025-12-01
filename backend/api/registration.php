@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 require_once __DIR__ . '/init.php';
-require_once __DIR__ . '/lib/api_helpers.php';
+require_once __DIR__ . '/../lib/api_helpers.php';
 
 
 log_info('registration_debug', 'Incoming', [

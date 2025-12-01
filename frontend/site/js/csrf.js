@@ -1,14 +1,18 @@
-﻿(async function () {
+﻿document.addEventListener('DOMContentLoaded', async () => {
     try {
-        const res = await fetch('/OCES/backend/api/csrf.php', { credentials: 'same-origin' });
-        if (!res.ok) return;
-        const json = await res.json();
-        const token = json.csrf_token;
-
-        document.querySelectorAll('input[name="csrf_token"]').forEach(el => {
-            el.value = token;
-        });
-    } catch (err) {
-        console.error('CSRF init failed', err);
+        const res = await fetch('/OCES/backend/api/csrf.php', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
+        const j = await res.json();
+        const token = j?.data?.csrf_token;
+        if (token) {
+            const el = document.querySelector('input[name="csrf_token"]');
+            if (el) el.value = token;
+            // also store on form dataset for JS submiters
+            const f = document.getElementById('loginForm');
+            if (f) f.dataset.csrf = token;
+        } else {
+            console.warn('csrf: no token returned');
+        }
+    } catch (e) {
+        console.error('csrf fetch failed', e);
     }
-})();
+});
