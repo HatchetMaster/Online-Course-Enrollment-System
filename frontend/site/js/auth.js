@@ -11,7 +11,7 @@ async function _fetchJson(url, options = {}) {
     }
     return json;
 }
-
+// API functions
 async function apiRegister(payload) {
     return _fetchJson('/OCES/backend/api/registration.php', {
         method: 'POST',

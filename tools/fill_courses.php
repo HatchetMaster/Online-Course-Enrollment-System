@@ -38,7 +38,6 @@ if (!($db instanceof PDO)) {
 
 function make_test_user(PDO $db, string $username, string $email): int
 {
-    // Use project crypto helpers
     if (!function_exists('hmac_lookup') || !function_exists('encrypt_blob')) {
         throw new RuntimeException('Crypto helpers not available. Ensure backend/api/init.php loads crypto.php.');
     }

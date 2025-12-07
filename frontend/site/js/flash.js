@@ -8,7 +8,7 @@
         const json = await res.json();
         const flash = json.flash;
         if (!flash) return;
-
+        // add flash message to DOM
         const container = document.getElementById('message') || (function () {
             const form = document.querySelector('form');
             if (!form) return null;
@@ -18,7 +18,7 @@
             return div;
         })();
         if (!container) return;
-
+        // update DOM
         const key = Object.keys(flash)[0];
         const messageText = flash[key];
         container.textContent = messageText;

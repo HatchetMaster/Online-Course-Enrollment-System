@@ -19,11 +19,13 @@ final class IntegrationProfileTest extends TestCase
 
         // cookie jar path under tests/tmp_data
         $tmp = __DIR__ . '/tmp_data';
-        if (!is_dir($tmp))
+        if (!is_dir($tmp)) {
             mkdir($tmp, 0755, true);
+        }
         self::$cookieJar = $tmp . '/cookies.txt';
-        if (file_exists(self::$cookieJar))
+        if (file_exists(self::$cookieJar)) {
             @unlink(self::$cookieJar);
+        }
     }
 
     private function curlPostForm(string $path, array $data): array
@@ -74,8 +76,8 @@ final class IntegrationProfileTest extends TestCase
     public function testLoginAndProfileFlow(): void
     {
         // configure these to match a real test account in dev DB
-        $username = getenv('OCES_TEST_USER') ?: 'Student2';
-        $password = getenv('OCES_TEST_PASS') ?: 'Student2!';
+        $username = getenv('OCES_TEST_USER') ?: 'Student';
+        $password = getenv('OCES_TEST_PASS') ?: 'Student!';
         $loginPath = '/backend/api/login.php';
         $profilePath = '/backend/api/profile_get.php';
 
@@ -90,8 +92,26 @@ final class IntegrationProfileTest extends TestCase
         $this->assertArrayHasKey('success', $profileResp['body']);
         $this->assertTrue($profileResp['body']['success'], 'profile_get success true');
         $this->assertArrayHasKey('data', $profileResp['body']);
-        $this->assertArrayHasKey('profile', $profileResp['body']['data']);
+
+        // The API returns the profile object directly under data (not nested under "profile")
+        $data = $profileResp['body']['data'];
+        $this->assertIsArray($data, 'data should be an array');
+
+        // Validate core profile keys returned by backend/api/profile_get.php
+        $this->assertArrayHasKey('id', $data);
+        $this->assertArrayHasKey('username', $data);
+
+        // enrolled may be present or empty; accept missing key as empty array for backward compatibility
+        $enrolled = $data['enrolled'] ?? [];
+        $this->assertIsArray($enrolled, 'enrolled should be array');
+
+        // waitlist_positions may not be implemented yet in some branches; treat missing as empty array
+        $waitlistPositions = $data['waitlist_positions'] ?? [];
+        $this->assertIsArray($waitlistPositions, 'waitlist_positions should be array (defaults to empty)');
+
+        $this->assertIsInt($data['id'], 'id should be integer');
     }
+}
 
    /* public function testProfileUpdateChangesEmail(): void
     {
@@ -125,4 +145,4 @@ final class IntegrationProfileTest extends TestCase
         $this->assertTrue(!empty($json['success']), 'profile_update success true');
         $this->assertSame($email, $json['data']['profile']['email'] ?? null);
     }*/
-}
+

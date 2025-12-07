@@ -27,20 +27,23 @@ if (!empty($_SESSION['csrf_token'])) {
 }
 
 try {
-    // Return info about current user if logged in, else success:false
     $current = bootstrap_get('current_user') ?? null;
-    if (!empty($current) && !empty($current['id'])) {
-        $username = null;
-        if (!empty($current['username']))
-            $username = $current['username'];
-        respond_success(['id' => $current['id'], 'username' => $username], 200);
-    } else {
-        // not logged in
+    if (empty($current) || empty($current['id'])) {
+        // Not authenticated -> return 401 with standard error payload
         respond_error_payload(401, 'authentication_required', 'authentication required');
     }
+
+    $payload = [
+        'id' => $current['id'],
+        'username' => $current['username'] ?? null
+    ];
+
+    if (!empty($_SESSION['csrf_token'])) {
+        $payload['csrf_token'] = $_SESSION['csrf_token'];
+    }
+
+    respond_success($payload, 200);
 } catch (Throwable $e) {
-    oces_simple_log('error', 'whoami_exception', ['exception' => $e->getMessage()]);
+    oces_simple_log('error', 'whoami_exception', ['exception' => (string) $e]);
     respond_error_payload(500, 'internal_error', 'internal server error');
 }
-
-http_response_code(200);

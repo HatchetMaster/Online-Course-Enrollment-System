@@ -1,5 +1,3 @@
-// frontend/site/js/enroll.js
-// Minimal helper: attach to buttons with .enrollBtn and data-course-id / data-action ("enroll"|"cancel")
 document.addEventListener('click', async (ev) => {
     const btn = ev.target.closest && ev.target.closest('.enrollBtn');
     if (!btn) return;

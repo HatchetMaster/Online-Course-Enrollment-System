@@ -21,7 +21,7 @@
         }
         return null;
     }
-
+    // form validation and submit handler
     form.addEventListener('submit', function (e) {
         const data = new FormData(form);
         const payload = {

@@ -1,8 +1,10 @@
 ﻿document.addEventListener('DOMContentLoaded', async () => {
     try {
+        // get csrf token
         const res = await fetch('/OCES/backend/api/csrf.php', { credentials: 'same-origin', headers: { 'Accept': 'application/json' } });
         const j = await res.json();
         const token = j?.data?.csrf_token;
+        // set token in hidden input
         if (token) {
             const el = document.querySelector('input[name="csrf_token"]');
             if (el) el.value = token;

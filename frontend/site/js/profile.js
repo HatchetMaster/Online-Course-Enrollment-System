@@ -6,6 +6,7 @@
     const coursesTbody = document.getElementById('coursesTbody');
     const addCourseForm = document.getElementById('addCourseForm');
     const addCourseMsg = document.getElementById('addCourseMsg');
+    // escape html  
     function escapeHtml(s) {
         if (s == null) return '';
         return String(s)
